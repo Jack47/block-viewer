@@ -11,7 +11,8 @@ import (
 	"time"
 )
 
-var Bin = "./binary/b9.bin"
+var Bin = "./binary/48.bin"
+var Bin2 = "./binary/b9.bin"
 
 type Header struct {
 	Version             int32
@@ -115,11 +116,10 @@ func (tx *Tx) parse(data []byte, isCoinBase bool) (bytesUsed int, err error) {
 		tx.Ins[i] = in
 		offset += bytesUsed
 	}
-
 	tx.OutCount, bytesUsed = compactSizeUint(data[offset:])
 	offset += bytesUsed
 	// parse tx.outs
-	tx.Outs = make([]*TxOut, tx.InCount)
+	tx.Outs = make([]*TxOut, tx.OutCount)
 	for i := uint64(0); i < tx.OutCount; i++ {
 		out := new(TxOut)
 		bytesUsed, err = out.parse(data[offset:])
@@ -129,6 +129,7 @@ func (tx *Tx) parse(data []byte, isCoinBase bool) (bytesUsed int, err error) {
 		tx.Outs[i] = out
 		offset += bytesUsed
 	}
+
 	tx.LockTime = ToUint32(data[offset:])
 	offset += 4
 	tx.Size = offset
@@ -150,7 +151,6 @@ func (txIn *TxIn) parse(data []byte, isCoinBase bool) (bytesUsed int, err error)
 	if len(data) < minLen {
 		return 0, errors.New(fmt.Sprintf("data len must >= %d, got %d", minLen, len(data)))
 	}
-	fmt.Printf("data: %s\n", hex.EncodeToString(data[0:36]))
 	offset := 0
 	txIn.PrevOutput = new(OutPoint)
 	if bytesUsed, err = txIn.PrevOutput.parse(data); err != nil {
@@ -187,8 +187,10 @@ type TxOut struct {
 	// Number of satoshis to spend.
 	Value             uint64
 	PubKeyScriptBytes uint64
-	pubKeyScript      []byte
-	PubKeyScript      string
+	// Indicate what conditions must be fulfilled for those
+	// satoshis to be further spent
+	pubKeyScript []byte
+	PubKeyScript string
 }
 
 func (t *TxOut) parse(data []byte) (bytesUsed int, err error) {
@@ -199,9 +201,9 @@ func (t *TxOut) parse(data []byte) (bytesUsed int, err error) {
 	t.PubKeyScriptBytes, bytesUsed = compactSizeUint(data[offset:])
 	offset += bytesUsed
 	t.pubKeyScript = data[offset : offset+int(t.PubKeyScriptBytes)]
-	t.PubKeyScript = hex.EncodeToString(toBigEndianBytes(t.pubKeyScript))
+	t.PubKeyScript = hex.EncodeToString(t.pubKeyScript)
 	offset += int(t.PubKeyScriptBytes)
-	return
+	return offset, nil
 }
 
 func NewBlock(data []byte) (bl *Block, err error) {
@@ -227,7 +229,6 @@ func NewBlock(data []byte) (bl *Block, err error) {
 	bl.TxCount, bytesUsed = compactSizeUint(body)
 	offset += bytesUsed
 	bl.Txs = make([]*Tx, bl.TxCount)
-	fmt.Printf("\nneed to parse %d txs\n", bl.TxCount)
 
 	// coinbase transaction
 	// Always created by a miner, it includes a single coinbase.
@@ -236,11 +237,13 @@ func NewBlock(data []byte) (bl *Block, err error) {
 	if err != nil {
 		return nil, err
 	}
-
 	bl.Txs[0] = cbTx
+	offset += bytesUsed
+	print(cbTx)
+
 	for i := uint64(1); i < bl.TxCount; i++ {
 		tx := new(Tx)
-		fmt.Printf("parse %dth\n", i)
+		// fmt.Printf("parse %dth\n", i)
 		bytesUsed, err = tx.parse(body[offset:], false /*isCoinBase*/)
 		if err != nil {
 			return nil, err
@@ -272,6 +275,6 @@ func main() {
 		fmt.Printf("parse block failed: %s", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Parsed Block:\n")
+	// fmt.Printf("Parsed Block:\n")
 	print(block)
 }
