@@ -26,7 +26,7 @@ var testBlocks = []struct {
 			TxCount: 1,
 			Txs: []*Tx{
 				&Tx{
-					Size:     112,
+					Size:     204,
 					Version:  1,
 					InCount:  1,
 					OutCount: 1,
@@ -36,7 +36,7 @@ var testBlocks = []struct {
 								Hash:  "0000000000000000000000000000000000000000000000000000000000000000",
 								Index: 4294967295,
 							},
-							ScriptBytes:     25,
+							ScriptBytes:     77,
 							SignatureScript: "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73",
 							Sequence:        0,
 						},
@@ -44,8 +44,8 @@ var testBlocks = []struct {
 					Outs: []*TxOut{
 						&TxOut{
 							Value:             5000000000,
-							PubKeyScriptBytes: 25,
-							PubKeyScript:      "04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f OP_CHECKSIG",
+							PubKeyScriptBytes: 67,
+							PubKeyScript:      "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac",
 						},
 					},
 					LockTime: 0,
@@ -57,7 +57,7 @@ var testBlocks = []struct {
 
 func TestFetchAndParseBlocks(b *testing.T) {
 	for _, testBlock := range testBlocks {
-		bytes, err := fetchBlock(testBlock.blockHash, false /*dumpFile*/)
+		bytes, err := fetchBlock(testBlock.blockHash, true /*dumpFile*/)
 		if err != nil {
 			b.Fatal(err)
 		}
