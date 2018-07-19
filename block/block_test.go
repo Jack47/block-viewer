@@ -57,7 +57,7 @@ var testBlocks = []struct {
 
 func TestFetchAndParseBlocks(b *testing.T) {
 	for _, testBlock := range testBlocks {
-		bytes, err := fetchBlock(testBlock.blockHash, true /*dumpFile*/)
+		bytes, err := FetchBlock(testBlock.blockHash, true /*dumpFile*/)
 		if err != nil {
 			b.Fatal(err)
 		}

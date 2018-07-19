@@ -255,7 +255,7 @@ func (t *TxOut) parse(data []byte) (bytesUsed int, err error) {
 }
 
 // fetch block from internet, dump to temp dir if dumpFile is true
-func fetchBlock(blockHash string, dumpFile bool) ([]byte, error) {
+func FetchBlock(blockHash string, dumpFile bool) ([]byte, error) {
 	// url := "https://blockchain.info/block/" + blockHash + "?format=hex"
 	url := "https://webbtc.com/block/" + blockHash + ".bin"
 
