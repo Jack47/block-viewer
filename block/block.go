@@ -80,7 +80,17 @@ type Block struct {
 	Txs     []*Tx
 }
 
+// Pase block from data according to https://bitcoin.org/en/developer-reference
+// NOTE: To save memory we don't copy input data, we just slice input data
+// In the future we'd better copy the data used
 func NewBlock(data []byte) (bl *Block, err error) {
+	// Simplify the error handling, we handle the panicing here
+	defer func() {
+		if r := recover(); r != nil {
+			bl = nil
+			err = fmt.Errorf("%s", r)
+		}
+	}()
 	if data == nil {
 		err = errors.New("nil pointer")
 		return
@@ -195,10 +205,6 @@ type TxIn struct {
 }
 
 func (txIn *TxIn) parse(data []byte, isCoinBase bool) (bytesUsed int, err error) {
-	minLen := 36 + 1 + 1 + 4 /* minimum len */
-	if len(data) < minLen {
-		return 0, errors.New(fmt.Sprintf("data len must >= %d, got %d", minLen, len(data)))
-	}
 	offset := 0
 	txIn.PrevOutput = new(OutPoint)
 	if bytesUsed, err = txIn.PrevOutput.parse(data); err != nil {
@@ -258,8 +264,10 @@ func (t *TxOut) parse(data []byte) (bytesUsed int, err error) {
 func FetchBlock(blockHash string, dumpFile bool) ([]byte, error) {
 	// url := "https://blockchain.info/block/" + blockHash + "?format=hex"
 	url := "https://webbtc.com/block/" + blockHash + ".bin"
-
-	resp, err := http.Get(url)
+	c := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	resp, err := c.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("fetch block failed: %s", err)
 	}
