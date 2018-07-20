@@ -10,6 +10,7 @@ This is a block viewer, which reach webbtc.com to retrieve the binary of block (
 1. Go lang >= 1.8
 2. jq (optional) to format json: yum install -y jq
 ### Build
+If current dir is not named as `Jack47`, please rename it to `Jack47`, because that name is part of package name in `block.go`
 ```shell
 mkdir -p $GOPATH/src/github.com/Jack47
 cd $GOPATH/src/github.com/Jack47
