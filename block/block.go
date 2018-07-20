@@ -112,7 +112,13 @@ func NewBlock(data []byte) (bl *Block, err error) {
 	bytesUsed := 0
 	bl.TxCount, bytesUsed = compactSizeUint(body)
 	offset += bytesUsed
-	bl.Txs = make([]*Tx, bl.TxCount)
+	// this is ugly, maybe improved further, controlled by block marshaler, not parser.
+	// parser will parse block, marshaler control how many blocks to marshal
+	blockCount := uint64(5)
+	if bl.TxCount < blockCount {
+		blockCount = bl.TxCount
+	}
+	bl.Txs = make([]*Tx, blockCount)
 
 	// coinbase transaction
 	// Always created by a miner, it includes a single coinbase.
@@ -125,7 +131,7 @@ func NewBlock(data []byte) (bl *Block, err error) {
 	offset += bytesUsed
 	print(cbTx)
 
-	for i := uint64(1); i < bl.TxCount; i++ {
+	for i := uint64(1); i < 5 && i < bl.TxCount; i++ {
 		tx := new(Tx)
 		// fmt.Printf("parse %dth\n", i)
 		bytesUsed, err = tx.parse(body[offset:], false /*isCoinBase*/)
@@ -261,6 +267,9 @@ func (t *TxOut) parse(data []byte) (bytesUsed int, err error) {
 }
 
 // fetch block from internet, dump to temp dir if dumpFile is true
+// NOTE: currently webttc has some issue in responding large blocks,
+// it will respond part of data,
+// such as 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 func FetchBlock(blockHash string, dumpFile bool) ([]byte, error) {
 	// url := "https://blockchain.info/block/" + blockHash + "?format=hex"
 	url := "https://webbtc.com/block/" + blockHash + ".bin"
