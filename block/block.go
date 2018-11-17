@@ -129,7 +129,6 @@ func NewBlock(data []byte) (bl *Block, err error) {
 	}
 	bl.Txs[0] = cbTx
 	offset += bytesUsed
-	print(cbTx)
 
 	for i := uint64(1); i < 5 && i < bl.TxCount; i++ {
 		tx := new(Tx)
