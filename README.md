@@ -1,5 +1,4 @@
-# backend_jack47
-code task for shengdong
+# block viewer
 
 This is a block viewer, which reach webbtc.com to retrieve the binary of block (https://webbtc.com/block/<hash>.bin). It will:
 1. Decode the header and display it to the terminal
